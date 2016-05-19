@@ -6,6 +6,8 @@ using namespace QuadBox;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
 using namespace Concurrency;
+using namespace Windows::UI::Core;
+using namespace Windows::System;
 
 // Loads and initializes application assets when the application is loaded.
 QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
@@ -89,6 +91,19 @@ void QuadBoxMain::Update()
 // Process all input from the user before updating game state
 void QuadBoxMain::ProcessInput()
 {
+	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
+	VirtualKey key = VirtualKey::W;
+	CoreVirtualKeyStates keyState;
+
+	if(curWindow)
+		keyState = curWindow->GetAsyncKeyState(key);
+	if(keyState == CoreVirtualKeyStates::Down)
+	{
+		// fall through
+		int p = 0;
+	}
+
+
 	// TODO: Add per frame input handling here.
 	m_sceneRenderer->TrackingUpdate(m_pointerLocationX);
 }

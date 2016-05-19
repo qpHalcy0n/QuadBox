@@ -9,7 +9,7 @@ using namespace Concurrency;
 
 // Loads and initializes application assets when the application is loaded.
 QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
-	m_deviceResources(deviceResources)
+	m_deviceResources(deviceResources), m_pointerLocationX(0.0f)
 {
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
@@ -40,9 +40,43 @@ void QuadBoxMain::CreateWindowSizeDependentResources()
 	m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
+void QuadBoxMain::StartRenderLoop()
+{
+	// If the animation render loop is already running then do not start another thread.
+	if (m_renderLoopWorker != nullptr && m_renderLoopWorker->Status == AsyncStatus::Started)
+	{
+		return;
+	}
+
+	// Create a task that will be run on a background thread.
+	auto workItemHandler = ref new WorkItemHandler([this](IAsyncAction ^ action)
+	{
+		// Calculate the updated frame and render once per vertical blanking interval.
+		while (action->Status == AsyncStatus::Started)
+		{
+			critical_section::scoped_lock lock(m_criticalSection);
+			Update();
+			if (Render())
+			{
+				m_deviceResources->Present();
+			}
+		}
+	});
+
+	// Run task on a dedicated high priority background thread.
+	m_renderLoopWorker = ThreadPool::RunAsync(workItemHandler, WorkItemPriority::High, WorkItemOptions::TimeSliced);
+}
+
+void QuadBoxMain::StopRenderLoop()
+{
+	m_renderLoopWorker->Cancel();
+}
+
 // Updates the application state once per frame.
 void QuadBoxMain::Update() 
 {
+	ProcessInput();
+
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{
@@ -50,6 +84,13 @@ void QuadBoxMain::Update()
 		m_sceneRenderer->Update(m_timer);
 		m_fpsTextRenderer->Update(m_timer);
 	});
+}
+
+// Process all input from the user before updating game state
+void QuadBoxMain::ProcessInput()
+{
+	// TODO: Add per frame input handling here.
+	m_sceneRenderer->TrackingUpdate(m_pointerLocationX);
 }
 
 // Renders the current frame according to the current application state.

@@ -5,8 +5,6 @@
 using namespace QuadBox;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
-using namespace Windows::UI::Core;
-using namespace Windows::System;
 using namespace Concurrency;
 
 // Loads and initializes application assets when the application is loaded.
@@ -45,19 +43,6 @@ void QuadBoxMain::CreateWindowSizeDependentResources()
 // Updates the application state once per frame.
 void QuadBoxMain::Update() 
 {
-	// Simple test: Get the current thread's window handle and check for 'W' key down state
-	// Should break if down
-	CoreWindow^ myWindow = CoreWindow::GetForCurrentThread();
-	VirtualKey key = VirtualKey::W;
-	CoreVirtualKeyStates keyState;
-
-	if(myWindow)
-		keyState = myWindow->GetAsyncKeyState(key);
-	if(keyState == CoreVirtualKeyStates::Down)
-	{
-		int p = 0;
-	}
-
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{

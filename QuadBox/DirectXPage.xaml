@@ -5,22 +5,22 @@
     xmlns:local="using:QuadBox"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Width="1256.294" Height="939.765">
+    mc:Ignorable="d">
 
-  <SwapChainPanel x:Name="swapChainPanel" Margin="0,0,9.667,0">
-    <TextBlock Text="Hello from XAML!"
-               HorizontalAlignment="Right"
-               VerticalAlignment="Top"
-               FontSize="30" />
+  <SwapChainPanel x:Name="swapChainPanel" Margin="0,0,0,0">
+    <!--<TextBlock Text="Hello from XAML!"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               FontSize="30" />-->
   </SwapChainPanel>
 
-  <Page.BottomAppBar>
-    <AppBar x:Name="bottomAppBar" Padding="10,0,10,0">
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+  <!--<Page.BottomAppBar>
+    <AppBar x:Name="bottomAppBar" Padding="0,0,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
         <AppBarButton AutomationProperties.Name="Sample Button"
                       AutomationProperties.AutomationId="SampleAppBarButton"
                       Click="AppBarButton_Click"/>
       </StackPanel>
     </AppBar>
-  </Page.BottomAppBar>
+  </Page.BottomAppBar>-->
 </Page>

@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "QuadBoxMain.h"
 #include "Common\DirectXHelper.h"
+#include "Content\camera.h"
 
 using namespace QuadBox;
 using namespace Windows::Foundation;
@@ -8,6 +9,8 @@ using namespace Windows::System::Threading;
 using namespace Concurrency;
 using namespace Windows::UI::Core;
 using namespace Windows::System;
+
+CCameraObject g_Camera;
 
 // Loads and initializes application assets when the application is loaded.
 QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
@@ -40,6 +43,27 @@ void QuadBoxMain::CreateWindowSizeDependentResources()
 {
 	// TODO: Replace this with the size-dependent initialization of your app's content.
 	m_sceneRenderer->CreateWindowSizeDependentResources();
+
+	Size outputSize = m_deviceResources->GetOutputSize();
+	float aspectRatio = outputSize.Width / outputSize.Height;
+	float fovAngleY = 70.0f * 3.14159F / 180.0f;
+	if (aspectRatio < 1.0f)
+	{
+		fovAngleY *= 2.0f;
+	}
+
+	vec3f camPos(0.0f, 0.7f, 1.5f);
+	vec3f lookPos(0.0f, -0.1f, 0.0f);
+	vec3f up(0.0f, 1.0f, 0.0f);
+	g_Camera.SetCamera(camPos, lookPos, up);
+	g_Camera.SetPerspective(fovAngleY, aspectRatio, 0.1f, 100.0f);
+
+	mat4 V, P;
+	g_Camera.GetViewMatrix(V);
+	g_Camera.GetProjectionMatrix(P);
+
+	m_sceneRenderer->SetViewMatrix(V);
+	m_sceneRenderer->SetProjectionMatrix(P);
 }
 
 void QuadBoxMain::StartRenderLoop()
@@ -99,8 +123,7 @@ void QuadBoxMain::ProcessInput()
 		keyState = curWindow->GetAsyncKeyState(key);
 	if(keyState == CoreVirtualKeyStates::Down)
 	{
-		// fall through
-		int p = 0;
+		g_Camera.MoveForward();
 	}
 
 
@@ -131,6 +154,14 @@ bool QuadBoxMain::Render()
 	// Clear the back buffer and depth stencil view.
 	context->ClearRenderTargetView(m_deviceResources->GetBackBufferRenderTargetView(), DirectX::Colors::CornflowerBlue);
 	context->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	// Update the camera matrices 
+	mat4 V, P;
+	g_Camera.GetViewMatrix(V);
+	g_Camera.GetProjectionMatrix(P);
+
+	m_sceneRenderer->SetViewMatrix(V);
+	m_sceneRenderer->SetProjectionMatrix(P);
 
 	// Render the scene objects.
 	// TODO: Replace this with your app's content rendering functions.

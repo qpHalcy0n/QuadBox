@@ -52,17 +52,35 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 
 	XMMATRIX orientationMatrix = XMLoadFloat4x4(&orientation);
 
-	XMStoreFloat4x4(
-		&m_constantBufferData.projection,
-		XMMatrixTranspose(perspectiveMatrix * orientationMatrix)
-		);
+//	XMStoreFloat4x4(
+//		&m_constantBufferData.projection,
+//		XMMatrixTranspose(perspectiveMatrix * orientationMatrix)
+//		);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+//	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+}
+
+void Sample3DSceneRenderer::SetViewMatrix(mat4 V)
+{
+	XMMATRIX view(V[0], V[4], V[8], V[12],
+				  V[1], V[5], V[9], V[13],
+				  V[2], V[6], V[10], V[14],
+				  V[3], V[7], V[11], V[15]);
+	XMStoreFloat4x4(&m_constantBufferData.view, view);
+}
+
+void Sample3DSceneRenderer::SetProjectionMatrix(mat4 P)
+{
+	XMMATRIX proj(P[0], P[4], P[8], P[12],
+				  P[1], P[5], P[9], P[13],
+				  P[2], P[6], P[10], P[14],
+				  P[3], P[7], P[11], P[15]);
+	XMStoreFloat4x4(&m_constantBufferData.projection, proj);
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.

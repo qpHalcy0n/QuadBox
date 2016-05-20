@@ -3,6 +3,7 @@
 #include "..\Common\DeviceResources.h"
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
+#include "qmath.h"
 
 namespace QuadBox
 {
@@ -20,6 +21,9 @@ namespace QuadBox
 		void TrackingUpdate(float positionX);
 		void StopTracking();
 		bool IsTracking() { return m_tracking; }
+
+		void SetViewMatrix(mat4 V);
+		void SetProjectionMatrix(mat4 P);
 
 
 	private:

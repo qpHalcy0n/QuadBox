@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 #include "DeviceResources.h"
 #include "DirectXHelper.h"
-#include <windows.ui.xaml.media.dxinterop.h>
 
 using namespace D2D1;
 using namespace DirectX;
@@ -29,7 +28,7 @@ namespace DisplayMetrics
 	static const float HeightThreshold = 1080.0f;	// 1080p height.
 };
 
-// Constants used to calculate screen rotations.
+// Constants used to calculate screen rotations
 namespace ScreenRotation
 {
 	// 0-degree Z-rotation
@@ -76,8 +75,6 @@ DX::DeviceResources::DeviceResources() :
 	m_currentOrientation(DisplayOrientations::None),
 	m_dpi(-1.0f),
 	m_effectiveDpi(-1.0f),
-	m_compositionScaleX(1.0f),
-	m_compositionScaleY(1.0f),
 	m_deviceNotify(nullptr)
 {
 	CreateDeviceIndependentResources();
@@ -285,7 +282,7 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.BufferCount = 2;									// Use double-buffering to minimize latency.
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;	// All Windows Store apps must use _FLIP_ SwapEffects.
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;	// All Windows Store apps must use this SwapEffect.
 		swapChainDesc.Flags = 0;
 		swapChainDesc.Scaling = scaling;
 		swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
@@ -306,35 +303,19 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			dxgiAdapter->GetParent(IID_PPV_ARGS(&dxgiFactory))
 		);
 
-		// When using XAML interop, the swap chain must be created for composition.
 		ComPtr<IDXGISwapChain1> swapChain;
 		DX::ThrowIfFailed(
-			dxgiFactory->CreateSwapChainForComposition(
+			dxgiFactory->CreateSwapChainForCoreWindow(
 				m_d3dDevice.Get(),
+				reinterpret_cast<IUnknown*>(m_window.Get()),
 				&swapChainDesc,
 				nullptr,
 				&swapChain
 			)
 		);
-
 		DX::ThrowIfFailed(
 			swapChain.As(&m_swapChain)
 		);
-
-		// Associate swap chain with SwapChainPanel
-		// UI changes will need to be dispatched back to the UI thread
-		m_swapChainPanel->Dispatcher->RunAsync(CoreDispatcherPriority::High, ref new DispatchedHandler([=]()
-		{
-			// Get backing native interface for SwapChainPanel
-			ComPtr<ISwapChainPanelNative> panelNative;
-			DX::ThrowIfFailed(
-				reinterpret_cast<IUnknown*>(m_swapChainPanel)->QueryInterface(IID_PPV_ARGS(&panelNative))
-			);
-
-			DX::ThrowIfFailed(
-				panelNative->SetSwapChain(m_swapChain.Get())
-			);
-		}, CallbackContext::Any));
 
 		// Ensure that DXGI does not queue more than one frame at a time. This both reduces latency and
 		// ensures that the application will only render after each VSync, minimizing power consumption.
@@ -383,19 +364,6 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 
 	DX::ThrowIfFailed(
 		m_swapChain->SetRotation(displayRotation)
-	);
-
-	// Setup inverse scale on the swap chain
-	DXGI_MATRIX_3X2_F inverseScale = { 0 };
-	inverseScale._11 = 1.0f / m_effectiveCompositionScaleX;
-	inverseScale._22 = 1.0f / m_effectiveCompositionScaleY;
-	ComPtr<IDXGISwapChain2> spSwapChain2;
-	DX::ThrowIfFailed(
-		m_swapChain.As<IDXGISwapChain2>(&spSwapChain2)
-	);
-
-	DX::ThrowIfFailed(
-		spSwapChain2->SetMatrixTransform(&inverseScale)
 	);
 
 	// Create a render target view of the swap chain back buffer.
@@ -484,8 +452,6 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 void DX::DeviceResources::UpdateRenderTargetSize()
 {
 	m_effectiveDpi = m_dpi;
-	m_effectiveCompositionScaleX = m_compositionScaleX;
-	m_effectiveCompositionScaleY = m_compositionScaleY;
 
 	// To improve battery life on high resolution devices, render to a smaller render target
 	// and allow the GPU to scale the output when it is presented.
@@ -501,8 +467,6 @@ void DX::DeviceResources::UpdateRenderTargetSize()
 		{
 			// To scale the app we change the effective DPI. Logical size does not change.
 			m_effectiveDpi /= 2.0f;
-			m_effectiveCompositionScaleX /= 2.0f;
-			m_effectiveCompositionScaleY /= 2.0f;
 		}
 	}
 
@@ -515,17 +479,15 @@ void DX::DeviceResources::UpdateRenderTargetSize()
 	m_outputSize.Height = max(m_outputSize.Height, 1);
 }
 
-// This method is called when the XAML control is created (or re-created).
-void DX::DeviceResources::SetSwapChainPanel(SwapChainPanel^ panel)
+// This method is called when the CoreWindow is created (or re-created).
+void DX::DeviceResources::SetWindow(CoreWindow^ window)
 {
 	DisplayInformation^ currentDisplayInformation = DisplayInformation::GetForCurrentView();
 
-	m_swapChainPanel = panel;
-	m_logicalSize = Windows::Foundation::Size(static_cast<float>(panel->ActualWidth), static_cast<float>(panel->ActualHeight));
+	m_window = window;
+	m_logicalSize = Windows::Foundation::Size(window->Bounds.Width, window->Bounds.Height);
 	m_nativeOrientation = currentDisplayInformation->NativeOrientation;
 	m_currentOrientation = currentDisplayInformation->CurrentOrientation;
-	m_compositionScaleX = panel->CompositionScaleX;
-	m_compositionScaleY = panel->CompositionScaleY;
 	m_dpi = currentDisplayInformation->LogicalDpi;
 	m_d2dContext->SetDpi(m_dpi, m_dpi);
 
@@ -548,6 +510,10 @@ void DX::DeviceResources::SetDpi(float dpi)
 	if (dpi != m_dpi)
 	{
 		m_dpi = dpi;
+
+		// When the display DPI changes, the logical size of the window (measured in Dips) also changes and needs to be updated.
+		m_logicalSize = Windows::Foundation::Size(m_window->Bounds.Width, m_window->Bounds.Height);
+
 		m_d2dContext->SetDpi(m_dpi, m_dpi);
 		CreateWindowSizeDependentResources();
 	}
@@ -559,18 +525,6 @@ void DX::DeviceResources::SetCurrentOrientation(DisplayOrientations currentOrien
 	if (m_currentOrientation != currentOrientation)
 	{
 		m_currentOrientation = currentOrientation;
-		CreateWindowSizeDependentResources();
-	}
-}
-
-// This method is called in the event handler for the CompositionScaleChanged event.
-void DX::DeviceResources::SetCompositionScale(float compositionScaleX, float compositionScaleY)
-{
-	if (m_compositionScaleX != compositionScaleX ||
-		m_compositionScaleY != compositionScaleY)
-	{
-		m_compositionScaleX = compositionScaleX;
-		m_compositionScaleY = compositionScaleY;
 		CreateWindowSizeDependentResources();
 	}
 }
@@ -589,7 +543,7 @@ void DX::DeviceResources::ValidateDevice()
 	ComPtr<IDXGIAdapter> deviceAdapter;
 	DX::ThrowIfFailed(dxgiDevice->GetAdapter(&deviceAdapter));
 
-	ComPtr<IDXGIFactory2> deviceFactory;
+	ComPtr<IDXGIFactory4> deviceFactory;
 	DX::ThrowIfFailed(deviceAdapter->GetParent(IID_PPV_ARGS(&deviceFactory)));
 
 	ComPtr<IDXGIAdapter1> previousDefaultAdapter;
@@ -674,7 +628,7 @@ void DX::DeviceResources::Present()
 
 	// Discard the contents of the render target.
 	// This is a valid operation only when the existing contents will be entirely
-	// overwritten. If dirty or scroll rects are used, this call should be modified.
+	// overwritten. If dirty or scroll rects are used, this call should be removed.
 	m_d3dContext->DiscardView1(m_d3dRenderTargetView.Get(), nullptr, 0);
 
 	// Discard the contents of the depth stencil.

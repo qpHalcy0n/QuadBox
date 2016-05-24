@@ -197,15 +197,10 @@
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="App.xaml.h">
-      <DependentUpon>App.xaml</DependentUpon>
-    </ClInclude>
+    <ClInclude Include="App.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Content\camera.h" />
     <ClInclude Include="Content\qmath.h" />
-    <ClInclude Include="DirectXPage.xaml.h">
-      <DependentUpon>DirectXPage.xaml</DependentUpon>
-    </ClInclude>
     <ClInclude Include="QuadBoxMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\StepTimer.h" />
@@ -215,14 +210,9 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App.xaml.cpp">
-      <DependentUpon>App.xaml</DependentUpon>
-    </ClCompile>
+    <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\camera.cpp" />
-    <ClCompile Include="DirectXPage.xaml.cpp">
-      <DependentUpon>DirectXPage.xaml</DependentUpon>
-    </ClCompile>
     <ClCompile Include="QuadBoxMain.cpp" />
     <ClCompile Include="Content\SampleFpsTextRenderer.cpp" />
     <ClCompile Include="Content\Sample3DSceneRenderer.cpp" />
@@ -248,12 +238,6 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <FileType>Document</FileType>
-    </ApplicationDefinition>
-    <Page Include="DirectXPage.xaml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

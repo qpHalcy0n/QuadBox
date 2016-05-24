@@ -14,7 +14,7 @@ CCameraObject g_Camera;
 
 // Loads and initializes application assets when the application is loaded.
 QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
-	m_deviceResources(deviceResources), m_pointerLocationX(0.0f)
+	m_deviceResources(deviceResources)
 {
 	// Register to be notified if the Device is lost or recreated
 	m_deviceResources->RegisterDeviceNotify(this);
@@ -30,6 +30,8 @@ QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResou
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	*/
+
+	CreateWindowSizeDependentResources();
 }
 
 QuadBoxMain::~QuadBoxMain()
@@ -66,38 +68,6 @@ void QuadBoxMain::CreateWindowSizeDependentResources()
 	m_sceneRenderer->SetProjectionMatrix(P);
 }
 
-void QuadBoxMain::StartRenderLoop()
-{
-	// If the animation render loop is already running then do not start another thread.
-	if (m_renderLoopWorker != nullptr && m_renderLoopWorker->Status == AsyncStatus::Started)
-	{
-		return;
-	}
-
-	// Create a task that will be run on a background thread.
-	auto workItemHandler = ref new WorkItemHandler([this](IAsyncAction ^ action)
-	{
-		// Calculate the updated frame and render once per vertical blanking interval.
-		while (action->Status == AsyncStatus::Started)
-		{
-			critical_section::scoped_lock lock(m_criticalSection);
-			Update();
-			if (Render())
-			{
-				m_deviceResources->Present();
-			}
-		}
-	});
-
-	// Run task on a dedicated high priority background thread.
-	m_renderLoopWorker = ThreadPool::RunAsync(workItemHandler, WorkItemPriority::High, WorkItemOptions::TimeSliced);
-}
-
-void QuadBoxMain::StopRenderLoop()
-{
-	m_renderLoopWorker->Cancel();
-}
-
 // Updates the application state once per frame.
 void QuadBoxMain::Update() 
 {
@@ -116,19 +86,24 @@ void QuadBoxMain::Update()
 void QuadBoxMain::ProcessInput()
 {
 	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
-	VirtualKey key = VirtualKey::W;
-	CoreVirtualKeyStates keyState;
 
-	if(curWindow)
-		keyState = curWindow->GetAsyncKeyState(key);
-	if(keyState == CoreVirtualKeyStates::Down)
+	if(curWindow->GetAsyncKeyState(VirtualKey::W) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveForward();
 	}
+	else if (curWindow->GetAsyncKeyState(VirtualKey::S) == CoreVirtualKeyStates::Down)
+	{
+		g_Camera.MoveBack();
+	}
 
-
-	// TODO: Add per frame input handling here.
-	m_sceneRenderer->TrackingUpdate(m_pointerLocationX);
+	if (curWindow->GetAsyncKeyState(VirtualKey::A) == CoreVirtualKeyStates::Down)
+	{
+		g_Camera.MoveLeft();
+	}
+	else if (curWindow->GetAsyncKeyState(VirtualKey::D) == CoreVirtualKeyStates::Down)
+	{
+		g_Camera.MoveRight();
+	}
 }
 
 // Renders the current frame according to the current application state.

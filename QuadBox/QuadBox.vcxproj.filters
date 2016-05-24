@@ -66,10 +66,19 @@
   <ItemGroup>
     <ClCompile Include="QuadBoxMain.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="App.xaml.cpp" />
+    <ClCompile Include="Content\camera.cpp" />
+    <ClCompile Include="DirectXPage.xaml.cpp" />
+    <ClCompile Include="App.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QuadBoxMain.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="App.xaml.h" />
+    <ClInclude Include="Content\camera.h" />
+    <ClInclude Include="Content\qmath.h" />
+    <ClInclude Include="DirectXPage.xaml.h" />
+    <ClInclude Include="App.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -81,11 +90,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="QuadBox_TemporaryKey.pfx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="DirectXPage.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml" />
   </ItemGroup>
 </Project>

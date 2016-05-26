@@ -21,6 +21,8 @@ namespace QuadBox
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();
 
+		void OnMouseMove(Windows::Devices::Input::MouseDevice^ sender, Windows::Devices::Input::MouseEventArgs^ args);
+
 	private:
 		void ProcessInput();
 

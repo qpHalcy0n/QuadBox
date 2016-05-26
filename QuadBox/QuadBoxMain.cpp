@@ -10,6 +10,7 @@ using namespace Concurrency;
 using namespace Windows::UI::Core;
 using namespace Windows::System;
 using namespace Windows::Gaming::Input;
+using namespace Windows::Devices::Input;
 
 CCameraObject g_Camera;
 
@@ -33,6 +34,14 @@ QuadBoxMain::QuadBoxMain(const std::shared_ptr<DX::DeviceResources>& deviceResou
 	*/
 
 	CreateWindowSizeDependentResources();
+
+	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
+	curWindow->SetPointerCapture();
+}
+
+void QuadBoxMain::OnMouseMove(MouseDevice^ sender, MouseEventArgs^ args)
+{
+	
 }
 
 QuadBoxMain::~QuadBoxMain()
@@ -86,18 +95,26 @@ void QuadBoxMain::Update()
 // Process all input from the user before updating game state
 void QuadBoxMain::ProcessInput()
 {
+	const float DEAD_ZONE = 0.45f;
+	auto count = Gamepad::Gamepads->Size;
+	
+	if (count > 0)
+	{
+		auto curGamepad = Gamepad::Gamepads->First()->Current;
+		auto reading = curGamepad->GetCurrentReading();
+
+		if (reading.LeftThumbstickX < -DEAD_ZONE)
+			g_Camera.MoveLeft();
+		else if (reading.LeftThumbstickX > DEAD_ZONE)
+			g_Camera.MoveRight();
+
+		if (reading.LeftThumbstickY > DEAD_ZONE)
+			g_Camera.MoveForward();
+		else if (reading.LeftThumbstickY < -DEAD_ZONE)
+			g_Camera.MoveBack();
+	}
+
 	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
-	auto curGamepad = Gamepad::Gamepads->First();
-
-	GamepadReading gamepadState;
-//	if(curGamepad)
-//		gamepadState = curGamepad->GetCurrentReading();
-
-	if(gamepadState.LeftThumbstickX < 0.0f)
-		g_Camera.MoveLeft();
-	if(gamepadState.LeftThumbstickX > 0.0f)
-		g_Camera.MoveRight();
-
 	if(curWindow->GetAsyncKeyState(VirtualKey::W) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveForward();

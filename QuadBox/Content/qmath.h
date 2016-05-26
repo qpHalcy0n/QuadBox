@@ -308,46 +308,46 @@ static void mat4_mul_vec4SSE(const mat4 l, const vec4 r, vec4 output)
 	float* r0 = (float*)&l[0];
 
 #ifdef WIN32
-	__asm
-	{
-		mov			esi, r					// Move address of r into esi
-			mov 		edi, output				// Move address of out into edi
+	//__asm
+	//{
+	//	mov			esi, r					// Move address of r into esi
+	//		mov 		edi, output				// Move address of out into edi
 
-			mov			edx, r0
-			movups		xmm4, [edx]				// Copy first col into xmm4    (16b)  from edx
-			movups		xmm5, [edx + 0x10]		// Copy second col into xmm5   (16b)  from edx
-			movups		xmm6, [edx + 0x20]		// Copy third col into xmm6    (16b)  from edx
-			movups		xmm7, [edx + 0x30]		// Copy fourth col into xmm7   (16b)  from edx
+	//		mov			edx, r0
+	//		movups		xmm4, [edx]				// Copy first col into xmm4    (16b)  from edx
+	//		movups		xmm5, [edx + 0x10]		// Copy second col into xmm5   (16b)  from edx
+	//		movups		xmm6, [edx + 0x20]		// Copy third col into xmm6    (16b)  from edx
+	//		movups		xmm7, [edx + 0x30]		// Copy fourth col into xmm7   (16b)  from edx
 
-			movups		xmm0, [esi]			// load vec into xmm0 from esi
-			xorps		xmm2, xmm2			// Clear xmm2 to 0
+	//		movups		xmm0, [esi]			// load vec into xmm0 from esi
+	//		xorps		xmm2, xmm2			// Clear xmm2 to 0
 
-			movups		xmm1, xmm0			// load vector into xmm1 from xmm0
-			shufps		xmm1, xmm1, 0x00	// No shuf for x
-			mulps		xmm1, xmm4			// Mul col0 by vec
-			addps		xmm2, xmm1			// Add result to xmm2
+	//		movups		xmm1, xmm0			// load vector into xmm1 from xmm0
+	//		shufps		xmm1, xmm1, 0x00	// No shuf for x
+	//		mulps		xmm1, xmm4			// Mul col0 by vec
+	//		addps		xmm2, xmm1			// Add result to xmm2
 
-			// Same for 2nd column //
-			movups		xmm1, xmm0
-			shufps		xmm1, xmm1, 0x55
-			mulps		xmm1, xmm5
-			addps		xmm2, xmm1
+	//		// Same for 2nd column //
+	//		movups		xmm1, xmm0
+	//		shufps		xmm1, xmm1, 0x55
+	//		mulps		xmm1, xmm5
+	//		addps		xmm2, xmm1
 
-			// 3rd column //
-			movups		xmm1, xmm0
-			shufps		xmm1, xmm1, 0xAA
-			mulps		xmm1, xmm6
-			addps		xmm2, xmm1
+	//		// 3rd column //
+	//		movups		xmm1, xmm0
+	//		shufps		xmm1, xmm1, 0xAA
+	//		mulps		xmm1, xmm6
+	//		addps		xmm2, xmm1
 
-			// 4th column //
-			movups		xmm1, xmm0
-			shufps		xmm1, xmm1, 0xFF
-			mulps		xmm1, xmm7
-			addps		xmm2, xmm1
+	//		// 4th column //
+	//		movups		xmm1, xmm0
+	//		shufps		xmm1, xmm1, 0xFF
+	//		mulps		xmm1, xmm7
+	//		addps		xmm2, xmm1
 
-			// Broadcast result to edi (out) //
-			movups[edi], xmm2
-	}
+	//		// Broadcast result to edi (out) //
+	//		movups[edi], xmm2
+	//}
 
 	// ATT Syntax //
 #else

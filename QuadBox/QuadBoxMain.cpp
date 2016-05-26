@@ -9,6 +9,7 @@ using namespace Windows::System::Threading;
 using namespace Concurrency;
 using namespace Windows::UI::Core;
 using namespace Windows::System;
+using namespace Windows::Gaming::Input;
 
 CCameraObject g_Camera;
 
@@ -86,12 +87,23 @@ void QuadBoxMain::Update()
 void QuadBoxMain::ProcessInput()
 {
 	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
+	auto curGamepad = Gamepad::Gamepads->First();
+
+	GamepadReading gamepadState;
+//	if(curGamepad)
+//		gamepadState = curGamepad->GetCurrentReading();
+
+	if(gamepadState.LeftThumbstickX < 0.0f)
+		g_Camera.MoveLeft();
+	if(gamepadState.LeftThumbstickX > 0.0f)
+		g_Camera.MoveRight();
 
 	if(curWindow->GetAsyncKeyState(VirtualKey::W) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveForward();
 	}
-	else if (curWindow->GetAsyncKeyState(VirtualKey::S) == CoreVirtualKeyStates::Down)
+
+	if (curWindow->GetAsyncKeyState(VirtualKey::S) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveBack();
 	}
@@ -100,7 +112,8 @@ void QuadBoxMain::ProcessInput()
 	{
 		g_Camera.MoveLeft();
 	}
-	else if (curWindow->GetAsyncKeyState(VirtualKey::D) == CoreVirtualKeyStates::Down)
+
+	if (curWindow->GetAsyncKeyState(VirtualKey::D) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveRight();
 	}

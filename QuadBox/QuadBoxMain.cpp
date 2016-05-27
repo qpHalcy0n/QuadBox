@@ -95,7 +95,14 @@ void QuadBoxMain::Update()
 // Process all input from the user before updating game state
 void QuadBoxMain::ProcessInput()
 {
-	const float DEAD_ZONE = 0.45f;
+	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
+	Rect windowBounds = curWindow->Bounds;
+	curWindow->SetPointerCapture();
+
+	int32_t dw = (windowBounds.Left + windowBounds.Right) / 2;
+	int32_t dh = (windowBounds.Top + windowBounds.Bottom) / 2;
+
+	const float DEAD_ZONE = 0.1f;
 	auto count = Gamepad::Gamepads->Size;
 	
 	if (count > 0)
@@ -103,18 +110,25 @@ void QuadBoxMain::ProcessInput()
 		auto curGamepad = Gamepad::Gamepads->First()->Current;
 		auto reading = curGamepad->GetCurrentReading();
 
-		if (reading.LeftThumbstickX < -DEAD_ZONE)
-			g_Camera.MoveLeft();
-		else if (reading.LeftThumbstickX > DEAD_ZONE)
-			g_Camera.MoveRight();
+		double x = reading.LeftThumbstickX * reading.LeftThumbstickX * reading.LeftThumbstickX;
+		double y = reading.LeftThumbstickY * reading.LeftThumbstickY * reading.LeftThumbstickY;
 
-		if (reading.LeftThumbstickY > DEAD_ZONE)
-			g_Camera.MoveForward();
-		else if (reading.LeftThumbstickY < -DEAD_ZONE)
-			g_Camera.MoveBack();
+		if(x >= 0.0)
+			g_Camera.MoveRight(abs(x) * 0.3);
+		if(x <= 0.0)
+			g_Camera.MoveLeft(abs(x) * 0.3);
+		if(y >= 0.0)
+			g_Camera.MoveForward(abs(y) * 0.3);
+		if(y <= 0.0)
+			g_Camera.MoveBack(abs(y) * 0.3);
+
+		int lookX = (int)(reading.RightThumbstickX * 100.0);
+		int lookY = (int)(reading.RightThumbstickY * 100.0);
+		g_Camera.Update((int)lookX, (int)lookY, dw, dh, 0.0003f);
+
 	}
 
-	CoreWindow^ curWindow = CoreWindow::GetForCurrentThread();
+	
 	if(curWindow->GetAsyncKeyState(VirtualKey::W) == CoreVirtualKeyStates::Down)
 	{
 		g_Camera.MoveForward();
